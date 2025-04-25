@@ -182,12 +182,31 @@
             text-align: center;
 
         } */
+        #loading {
+        display: none;
+        font-size: 24px;
+        color: white;
+        margin-left: 10px;
+        animation: pulse 1s infinite;
+      }
+
+      @keyframes pulse {
+          0% {
+              opacity: 0.2;
+          }
+          50% {
+              opacity: 1;
+          }
+          100% {
+              opacity: 0.2;
+          }
+      }
     </style>
 
 </head>
 <body>
 
-    <header>
+    <header style="align-items: center;">
         <img src="https://png.pngtree.com/template/20191024/ourmid/pngtree-flower-pot-and-plant-logo-growth-vector-logo-image_322946.jpg" alt="Logo">
         <h1><b>PLANT DISEASE DETECTION SYSTEM</b></h1>
     </header>
@@ -225,6 +244,8 @@
         </form>
       </div>
     </div>
+    <div id="loading">⏳ Analysing... Please wait.</div>
+
 
       <div id="preview-image"></div>
       <div id="prediction-result" style="display: none;">
@@ -249,6 +270,11 @@
             preview.innerHTML = '';
           }
         });
+          const forms = document.querySelectorAll("form");
+      forms.forEach(form => {
+        form.addEventListener("submit", () => {
+          document.getElementById("loading").style.display = "block";
+        });
       </script>
     <script>
         
@@ -268,11 +294,43 @@
       preview.innerHTML = '';
     }
   });
+  document.getElementById("greenbot-toggle").onclick = function () {
+    const chatbox = document.getElementById("greenbot-chatbox");
+    chatbox.style.display = chatbox.style.display === "none" ? "block" : "none";
+};
+
+document.getElementById("greenbot-input").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+        const userMsg = e.target.value.trim();
+        if (!userMsg) return;
+
+        const messages = document.getElementById("greenbot-messages");
+        messages.innerHTML += `<div><strong>You:</strong> ${userMsg}</div>`;
+
+        fetch('/greenbot_ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: userMsg })
+        })
+        .then(res => res.json())
+        .then(data => {
+            messages.innerHTML += `<div><strong>GreenBot:</strong> ${data.response}</div>`;
+            messages.scrollTop = messages.scrollHeight;
+        });
+
+        e.target.value = '';
+    }
+});
 </script>
 
 {% if prediction %}
       <p class="pred">Predicted Disease: {{ prediction }}</p>
 {% endif %}
+
+{% if remedy %}
+  <p class="pred"><strong>Treatment Info:</strong> {{ remedy }}</p>
+{% endif %}
+
 
 {% if predictions %}
     <p>Predictions for images in the folder:</p>
@@ -282,6 +340,85 @@
         {% endfor %}
     </ul>
     {% endif %}
+<!-- Chatbot Toggle Button -->
+<div id="greenbot-toggle" style="position: fixed; bottom: 20px; right: 20px; background-color: #00a86b; color: white; border-radius: 50%; width: 60px; height: 60px; text-align: center; line-height: 60px; cursor: pointer; font-size: 30px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+    💬
+</div>
 
+<!-- Chatbot Container -->
+<div id="greenbot-chatbox" style="display: none; position: fixed; bottom: 90px; right: 20px; width: 300px; height: 400px; background-color: white; border: 2px solid #00a86b; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 999;">
+    <div style="background-color: #00a86b; color: white; padding: 10px; font-weight: bold;">🌿 GreenBot</div>
+    <div id="greenbot-messages" style="padding: 10px; height: 300px; overflow-y: auto; font-size: 14px; color: black;"></div>
+    <input type="text" id="greenbot-input" placeholder="Ask me about plants..." style="width: 100%; box-sizing: border-box; padding: 8px; border: none; border-top: 1px solid #ccc;">
+</div>
+      <script>
+        document.getElementById('file-input').addEventListener('change', function() {
+          const preview = document.getElementById('preview-image');
+          const file = this.files[0];
+
+          if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+              preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            };
+
+            reader.readAsDataURL(file);
+          } else {
+            preview.innerHTML = '';
+          }
+        });
+          const forms = document.querySelectorAll("form");
+      forms.forEach(form => {
+        form.addEventListener("submit", () => {
+          document.getElementById("loading").style.display = "block";
+        });
+      </script>
+    <script>
+
+  document.getElementById('file-input').addEventListener('change', function() {
+    const preview = document.getElementById('preview-image');
+    const file = this.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        preview.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 400px; max-height: 400px; object-fit: contain;">`;
+      };
+
+      reader.readAsDataURL(file);
+    } else {
+      preview.innerHTML = '';
+    }
+  });
+  document.getElementById("greenbot-toggle").onclick = function () {
+    const chatbox = document.getElementById("greenbot-chatbox");
+    chatbox.style.display = chatbox.style.display === "none" ? "block" : "none";
+};
+
+document.getElementById("greenbot-input").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+        const userMsg = e.target.value.trim();
+        if (!userMsg) return;
+
+        const messages = document.getElementById("greenbot-messages");
+        messages.innerHTML += `<div><strong>You:</strong> ${userMsg}</div>`;
+
+        fetch('/greenbot_ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: userMsg })
+        })
+        .then(res => res.json())
+        .then(data => {
+            messages.innerHTML += `<div><strong>GreenBot:</strong> ${data.response}</div>`;
+            messages.scrollTop = messages.scrollHeight;
+        });
+
+        e.target.value = '';
+    }
+});
+</script>
 </body>
 </html>
